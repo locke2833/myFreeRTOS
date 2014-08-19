@@ -3,6 +3,7 @@
 
 #include "FreeRTOS.h"
 #include "task.h"
+#include "semphr.h"
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -10,10 +11,11 @@
 #include <time.h>
 
 #define BallNum 10
+extern void srand(_UINT);
 //Player1
 int16_t player1X = 10;
 int16_t player1Y = 10;
-uint16_t player1W = 60;
+uint16_t player1W = 10;
 uint16_t player1H = 10;
 uint8_t player1IsReversed = 1;
 
@@ -46,16 +48,19 @@ void GameInit(){
 	for(i=0;i<ballnum;i++){
 		ballIsRun[i]=0;
 	}
-	srand(time(NULL));
+	srand(123);
 }
 void randBallxy(int ballNo){
 	
 	ballx[ballNo] = ( rand() % (LCD_PIXEL_WIDTH - ballSize ) );
+//    ballx[ballNo] = 0;    
 
 	bally[ballNo] = LCD_PIXEL_HEIGHT - ballSize;
-
+   
+//	ballvx[ballNo] = 5;
+//    ballvy[ballNo] = 5;
 	ballvx[ballNo] = (rand()%10)+1;
-	ballvy[ballNo] = -(rand()%10)+1;
+	ballvy[ballNo] = -((rand()%10)+1);
 
 	ballIsRun[ballNo] = 1;
 }
@@ -93,6 +98,7 @@ void UpdateBall(int ballNo){
 			bally[ballNo] += ballvy[ballNo];
 			if(bally[ballNo]<0){
 				ballIsRun[ballNo] =0;
+				randBallxy(ballNo);
 			}
 		}
 		else{
@@ -214,14 +220,14 @@ GAME_Update()
 
 		//Player2
 		if( player2IsReversed )
-			player2X -= 5;
+			player1Y += 5;
 		else
-			player2X += 5;
+			player1Y -= 5;
 
-		if( player2X <= 0 )
-			player2X = 0;
-		else if( player2X + player2W >= LCD_PIXEL_WIDTH )
-			player2X = LCD_PIXEL_WIDTH - player2W;
+		if( player1Y <= 0 )
+			player1Y = 0;
+		else if( player1Y + player1H >= LCD_PIXEL_HEIGHT )
+			player1Y = LCD_PIXEL_HEIGHT - player1H;
 
 		//Ball	
 		int i;
@@ -348,10 +354,10 @@ GAME_Render()
 {
 	LCD_SetTextColor( LCD_COLOR_WHITE );
 	LCD_DrawFullRect( player1X, player1Y, player1W, player1H );
-	LCD_DrawFullRect( player2X, player2Y, player2W, player2H );
+	//LCD_DrawFullRect( player2X, player2Y, player2W, player2H );
 	int i;
 	for(i=0;i<ballnum;i++){
 		LCD_DrawFullRect( ballx[i], bally[i], ballSize, ballSize );
 	}
-	LCD_DrawLine( 10, LCD_PIXEL_HEIGHT / 2, LCD_PIXEL_WIDTH - 20, LCD_DIR_HORIZONTAL );
+	//LCD_DrawLine( 10, LCD_PIXEL_HEIGHT / 2, LCD_PIXEL_WIDTH - 20, LCD_DIR_HORIZONTAL );
 }
