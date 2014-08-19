@@ -63,6 +63,7 @@ prvInit()
 
 	//LED
 	STM_EVAL_LEDInit( LED3 );
+	GameInit();
 }
 
 static void GameEventTask1( void *pvParameters )

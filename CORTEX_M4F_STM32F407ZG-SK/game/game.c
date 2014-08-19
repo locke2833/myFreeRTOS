@@ -7,7 +7,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
 
+#define BallNum 10
 //Player1
 int16_t player1X = 10;
 int16_t player1Y = 10;
@@ -24,27 +26,134 @@ uint8_t player2IsReversed = 0;
 
 //Ball
 uint16_t ballSize = 5;
-int16_t ballX = ( LCD_PIXEL_WIDTH - 5 ) / 2;
-int16_t ballY = ( LCD_PIXEL_HEIGHT - 5 ) / 2;
-int16_t ballVX = 5;
-int16_t ballVY = 5;
+/*int16_t ballx[ballNo] = ( LCD_PIXEL_WIDTH - 5 ) / 2;
+int16_t bally[ballNo] = ( LCD_PIXEL_HEIGHT - 5 ) / 2;
+int16_t ballvx[ballNo] = 5;
+int16_t ballvy[ballNo] = 5;
 uint8_t ballIsRun = 0;
-
+*/
+//balls
+int16_t ballnum = BallNum;
+int16_t ballx[BallNum];
+int16_t bally[BallNum];
+int16_t ballvx[BallNum];
+int16_t ballvy[BallNum];
+int16_t ballIsRun[BallNum];
 //Mode
 uint8_t demoMode = 0;
+void GameInit(){
+	int i;
+	for(i=0;i<ballnum;i++){
+		ballIsRun[i]=0;
+	}
+	srand(time(NULL));
+}
+void randBallxy(int ballNo){
+	
+	ballx[ballNo] = ( rand() % (LCD_PIXEL_WIDTH - ballSize ) );
 
+	bally[ballNo] = LCD_PIXEL_HEIGHT - ballSize;
+
+	ballvx[ballNo] = (rand()%10)+1;
+	ballvy[ballNo] = -(rand()%10)+1;
+
+	ballIsRun[ballNo] = 1;
+}
+/*
 void
 BallReset()
 {
-	ballX = ( LCD_PIXEL_WIDTH - 5 ) / 2;
-	ballY = ( LCD_PIXEL_HEIGHT - 5 ) / 2;
+	ballx[ballNo] = ( LCD_PIXEL_WIDTH - 5 ) / 2;
+	bally[ballNo] = ( LCD_PIXEL_HEIGHT - 5 ) / 2;
 
-	ballVX = 5;
-	ballVY = 5;
+	ballvx[ballNo] = 5;
+	ballvy[ballNo] = 5;
 
 	ballIsRun = 1;
-}
+}*/
+void UpdateBall(int ballNo){
 
+		if( ballIsRun[ballNo] == 1 ){
+
+
+			LCD_SetTextColor( LCD_COLOR_BLACK );
+			LCD_DrawFullRect( ballx[ballNo], bally[ballNo], ballSize, ballSize );
+
+			//Touch wall
+			ballx[ballNo] += ballvx[ballNo];
+			if( ballx[ballNo] <= 0 ){
+				ballx[ballNo] = 0;
+				ballvx[ballNo] *= -1;
+			}
+			else if( ballx[ballNo] + ballSize >= LCD_PIXEL_WIDTH ){
+				ballx[ballNo] = LCD_PIXEL_WIDTH - ballSize;
+				ballvx[ballNo] *= -1;
+			}
+
+			bally[ballNo] += ballvy[ballNo];
+			if(bally[ballNo]<0){
+				ballIsRun[ballNo] =0;
+			}
+		}
+		else{
+	    	randBallxy(ballNo);		
+		}
+			//PONG!
+			/*if( bally[ballNo] + ballSize >= player2Y ){
+				if( ballx[ballNo] + ballSize >= player2X && ballx[ballNo] <= player2X + player2W ){
+					if( ballx[ballNo] - ballSize <= player2Y + player2W/4 ){
+						ballvy[ballNo] =-3;
+						ballvx[ballNo] =-7;
+					}
+					else if( ballx[ballNo] >= player2Y + player2W - player2W/4 ){
+						ballvy[ballNo] =-3;
+						ballvx[ballNo] = 7;
+					}
+					else if( ballx[ballNo] + ballSize < player2Y + player2W/2 ){
+						ballvy[ballNo] =-7;
+						ballvx[ballNo] =-3;
+					}
+					else if( ballx[ballNo] > player2Y + player2W/2 ){
+						ballvy[ballNo] =-7;
+						ballvx[ballNo] = 3;
+					}
+					else{
+						ballvy[ballNo] =-9;
+						ballvx[ballNo] = 0;
+					}
+				}
+				else
+					BallReset();
+			}
+
+			if( bally[ballNo] <= player1Y + player1H ){
+					if( ballx[ballNo] + ballSize >= player1X && ballx[ballNo] <= player1X + player1W ){
+						if( ballx[ballNo] - ballSize <= player1Y + player1W/4 ){
+							ballvy[ballNo] = 3;
+							ballvx[ballNo] =-7;
+						}
+						else if( ballx[ballNo] >= player1Y + player1W - player1W/4 ){
+							ballvy[ballNo] = 3;
+							ballvx[ballNo] = 7;
+						}
+						else if( ballx[ballNo] + ballSize < player1Y + player1W/2 ){
+							ballvy[ballNo] = 7;
+							ballvx[ballNo] =-3;
+						}
+						else if( ballx[ballNo] > player1Y + player1W/2 ){
+							ballvy[ballNo] = 7;
+							ballvx[ballNo] = 3;
+						}
+						else{
+							ballvy[ballNo] = 9;
+							ballvx[ballNo] = 0;
+						}
+					}
+					else
+						BallReset();
+			}
+		}*/
+}
 void
 GAME_EventHandler1()
 {
@@ -74,8 +183,12 @@ GAME_EventHandler2()
 void
 GAME_EventHandler3()
 {
-	if( ballIsRun == 0 ){
-		BallReset();
+	int i;
+	for(i=0;i<ballnum;i++){
+		if( ballIsRun[i] == 0 ){
+			//BallReset();
+			randBallxy(i);	
+		}
 	}
 }
 
@@ -110,85 +223,17 @@ GAME_Update()
 		else if( player2X + player2W >= LCD_PIXEL_WIDTH )
 			player2X = LCD_PIXEL_WIDTH - player2W;
 
-		//Ball
-		if( ballIsRun == 1 ){
-
-			LCD_SetTextColor( LCD_COLOR_BLACK );
-			LCD_DrawFullRect( ballX, ballY, ballSize, ballSize );
-
-			//Touch wall
-			ballX += ballVX;
-			if( ballX <= 0 ){
-				ballX = 0;
-				ballVX *= -1;
-			}
-			else if( ballX + ballSize >= LCD_PIXEL_WIDTH ){
-				ballX = LCD_PIXEL_WIDTH - ballSize;
-				ballVX *= -1;
-			}
-
-			//PONG!
-			ballY += ballVY;
-			if( ballY + ballSize >= player2Y ){
-				if( ballX + ballSize >= player2X && ballX <= player2X + player2W ){
-					if( ballX - ballSize <= player2Y + player2W/4 ){
-						ballVY =-3;
-						ballVX =-7;
-					}
-					else if( ballX >= player2Y + player2W - player2W/4 ){
-						ballVY =-3;
-						ballVX = 7;
-					}
-					else if( ballX + ballSize < player2Y + player2W/2 ){
-						ballVY =-7;
-						ballVX =-3;
-					}
-					else if( ballX > player2Y + player2W/2 ){
-						ballVY =-7;
-						ballVX = 3;
-					}
-					else{
-						ballVY =-9;
-						ballVX = 0;
-					}
-				}
-				else
-					BallReset();
-			}
-
-			if( ballY <= player1Y + player1H ){
-					if( ballX + ballSize >= player1X && ballX <= player1X + player1W ){
-						if( ballX - ballSize <= player1Y + player1W/4 ){
-							ballVY = 3;
-							ballVX =-7;
-						}
-						else if( ballX >= player1Y + player1W - player1W/4 ){
-							ballVY = 3;
-							ballVX = 7;
-						}
-						else if( ballX + ballSize < player1Y + player1W/2 ){
-							ballVY = 7;
-							ballVX =-3;
-						}
-						else if( ballX > player1Y + player1W/2 ){
-							ballVY = 7;
-							ballVX = 3;
-						}
-						else{
-							ballVY = 9;
-							ballVX = 0;
-						}
-					}
-					else
-						BallReset();
-				}
-			}
+		//Ball	
+		int i;
+		for(i=0;i<ballnum;i++){
+			UpdateBall(i);
 		}
-		else{	//if demoMode == 1
+	}
+	/*else{	//if demoMode == 1
 
 			//Player1 move
-			if( ballVY < 0 ){
-				if( player1X + player1W/2 < ballX + ballSize/2 ){
+			if( ballvy[ballNo] < 0 ){
+				if( player1X + player1W/2 < ballx[ballNo] + ballSize/2 ){
 					player1X += 8;
 					player2X += 2;
 				}
@@ -199,8 +244,8 @@ GAME_Update()
 			}
 
 			//Player2 move
-			if( ballVY > 0 ){
-				if( player2X + player2W/2 < ballX + ballSize/2 ){
+			if( ballvy[ballNo] > 0 ){
+				if( player2X + player2W/2 < ballx[ballNo] + ballSize/2 ){
 					player1X += 2;
 					player2X += 8;
 				}
@@ -226,76 +271,76 @@ GAME_Update()
 			if( ballIsRun == 1 ){
 
 				LCD_SetTextColor( LCD_COLOR_BLACK );
-				LCD_DrawFullRect( ballX, ballY, ballSize, ballSize );
+				LCD_DrawFullRect( ballx[ballNo], bally[ballNo], ballSize, ballSize );
 
 				//Touch wall
-				ballX += ballVX;
-				if( ballX <= 0 ){
-					ballX = 0;
-					ballVX *= -1;
+				ballx[ballNo] += ballvx[ballNo];
+				if( ballx[ballNo] <= 0 ){
+					ballx[ballNo] = 0;
+					ballvx[ballNo] *= -1;
 				}
-				else if( ballX + ballSize >= LCD_PIXEL_WIDTH ){
-					ballX = LCD_PIXEL_WIDTH - ballSize;
-					ballVX *= -1;
+				else if( ballx[ballNo] + ballSize >= LCD_PIXEL_WIDTH ){
+					ballx[ballNo] = LCD_PIXEL_WIDTH - ballSize;
+					ballvx[ballNo] *= -1;
 				}
 
 				//PONG!
-				ballY += ballVY;
-				if( ballY + ballSize >= player2Y ){
-					if( ballX + ballSize >= player2X && ballX <= player2X + player2W ){
-					if( ballX - ballSize <= player2Y + player2W/4 ){
-						ballVY =-3;
-						ballVX =-7;
+				bally[ballNo] += ballvy[ballNo];
+				if( bally[ballNo] + ballSize >= player2Y ){
+					if( ballx[ballNo] + ballSize >= player2X && ballx[ballNo] <= player2X + player2W ){
+					if( ballx[ballNo] - ballSize <= player2Y + player2W/4 ){
+						ballvy[ballNo] =-3;
+						ballvx[ballNo] =-7;
 					}
-					else if( ballX >= player2Y + player2W - player2W/4 ){
-						ballVY =-3;
-						ballVX = 7;
+					else if( ballx[ballNo] >= player2Y + player2W - player2W/4 ){
+						ballvy[ballNo] =-3;
+						ballvx[ballNo] = 7;
 					}
-					else if( ballX + ballSize < player2Y + player2W/2 ){
-						ballVY =-7;
-						ballVX =-3;
+					else if( ballx[ballNo] + ballSize < player2Y + player2W/2 ){
+						ballvy[ballNo] =-7;
+						ballvx[ballNo] =-3;
 					}
-					else if( ballX > player2Y + player2W/2 ){
-						ballVY =-7;
-						ballVX = 3;
+					else if( ballx[ballNo] > player2Y + player2W/2 ){
+						ballvy[ballNo] =-7;
+						ballvx[ballNo] = 3;
 					}
 					else{
-						ballVY =-9;
-						ballVX = 0;
+						ballvy[ballNo] =-9;
+						ballvx[ballNo] = 0;
 					}
 				}
 				else
 					BallReset();
 			}
 
-			if( ballY <= player1Y + player1H ){
-				if( ballX + ballSize >= player1X && ballX <= player1X + player1W ){
-					if( ballX - ballSize <= player1Y + player1W/4 ){
-						ballVY = 3;
-						ballVX =-7;
+			if( bally[ballNo] <= player1Y + player1H ){
+				if( ballx[ballNo] + ballSize >= player1X && ballx[ballNo] <= player1X + player1W ){
+					if( ballx[ballNo] - ballSize <= player1Y + player1W/4 ){
+						ballvy[ballNo] = 3;
+						ballvx[ballNo] =-7;
 					}
-					else if( ballX >= player1Y + player1W - player1W/4 ){
-						ballVY = 3;
-						ballVX = 7;
+					else if( ballx[ballNo] >= player1Y + player1W - player1W/4 ){
+						ballvy[ballNo] = 3;
+						ballvx[ballNo] = 7;
 					}
-					else if( ballX + ballSize < player1Y + player1W/2 ){
-						ballVY = 7;
-						ballVX =-3;
+					else if( ballx[ballNo] + ballSize < player1Y + player1W/2 ){
+						ballvy[ballNo] = 7;
+						ballvx[ballNo] =-3;
 					}
-					else if( ballX > player1Y + player1W/2 ){
-						ballVY = 7;
-						ballVX = 3;
+					else if( ballx[ballNo] > player1Y + player1W/2 ){
+						ballvy[ballNo] = 7;
+						ballvx[ballNo] = 3;
 					}
 					else{
-						ballVY = 9;
-						ballVX = 0;
+						ballvy[ballNo] = 9;
+						ballvx[ballNo] = 0;
 					}
 				}
 				else
 					BallReset();
 			}
 		}
-	}
+	}*/
 }
 
 	void
@@ -304,6 +349,9 @@ GAME_Render()
 	LCD_SetTextColor( LCD_COLOR_WHITE );
 	LCD_DrawFullRect( player1X, player1Y, player1W, player1H );
 	LCD_DrawFullRect( player2X, player2Y, player2W, player2H );
-	LCD_DrawFullRect( ballX, ballY, ballSize, ballSize );
+	int i;
+	for(i=0;i<ballnum;i++){
+		LCD_DrawFullRect( ballx[i], bally[i], ballSize, ballSize );
+	}
 	LCD_DrawLine( 10, LCD_PIXEL_HEIGHT / 2, LCD_PIXEL_WIDTH - 20, LCD_DIR_HORIZONTAL );
 }
