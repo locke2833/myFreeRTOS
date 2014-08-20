@@ -31,10 +31,12 @@
 
 #include "FreeRTOS.h"
 #include "task.h"
+#include "semphr.h"
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
 /** @addtogroup Template
   * @{
   */ 
@@ -63,6 +65,7 @@ prvInit()
 
 	//LED
 	STM_EVAL_LEDInit( LED3 );
+	GameInit();	
 }
 
 static void GameEventTask1( void *pvParameters )
