@@ -79,6 +79,7 @@ static void GameEventTask2( void *pvParameters )
 {
 	while( 1 ){
 		GAME_EventHandler2();
+		vTaskDelay(5);
 	}
 }
 
@@ -109,7 +110,7 @@ int main(void)
 	xTaskCreate( GameTask, (signed char*) "GameTask", 128, NULL, tskIDLE_PRIORITY + 1, NULL );
 	xTaskCreate( GameEventTask1, (signed char*) "GameEventTask1", 128, NULL, tskIDLE_PRIORITY + 1, NULL );
 	xTaskCreate( GameEventTask2, (signed char*) "GameEventTask2", 128, NULL, tskIDLE_PRIORITY + 1, NULL );
-	xTaskCreate( GameEventTask3, (signed char*) "GameEventTask3", 128, NULL, tskIDLE_PRIORITY + 1, NULL );
+//	xTaskCreate( GameEventTask3, (signed char*) "GameEventTask3", 128, NULL, tskIDLE_PRIORITY + 1, NULL );
 
 	//Call Scheduler
 	vTaskStartScheduler();
